@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scholar — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Atmospheric background -->
+  <div class="bg-grid"  aria-hidden="true"></div>
+  <div class="orb orb-1" aria-hidden="true"></div>
+  <div class="orb orb-2" aria-hidden="true"></div>
+  <div class="orb orb-3" aria-hidden="true"></div>
+
+  <!-- Toast notification -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ── App shell ──────────────────────────────────────── -->
+  <div class="app">
+
+    <!-- ── Sidebar ────────────────────────────────────── -->
+    <aside class="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">✦</div>
+        <span class="brand-name">Scholar</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-item active"><span class="nav-icon">⊞</span>Dashboard</div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-row" id="user-row">
+          <div class="avatar" id="user-avatar">?</div>
+          <div>
+            <div class="user-name" id="user-name">Loading…</div>
+            <div class="user-role" id="user-email" style="font-size:0.68rem;color:#475569"></div>
+          </div>
+        </div>
+        <button class="btn-logout" id="btn-logout" type="button">
+          <span aria-hidden="true">⎋</span> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ────────────────────────────────── -->
+    <main class="main" role="main">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">Student Dashboard</h1>
+          <p class="page-sub">Manage, search, and track student records</p>
+        </div>
+        <div class="auth-badge">
+          <div class="dot"></div>
+          <span id="badge-label">Authenticated</span>
+        </div>
+      </header>
+
+      <!-- Stats -->
+      <section class="stats-row" aria-label="Summary statistics">
+        <div class="stat-card">
+          <div class="stat-lbl">Total Students</div>
+          <div class="stat-val" id="stat-total">—</div>
+          <div class="stat-bar"><div class="stat-fill fill-gold"   id="bar-total" style="width:100%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Class Average</div>
+          <div class="stat-val" id="stat-avg">—</div>
+          <div class="stat-bar"><div class="stat-fill fill-teal"   id="bar-avg"   style="width:0"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Top Scorer</div>
+          <div class="stat-val" id="stat-top">—</div>
+          <div class="stat-bar"><div class="stat-fill fill-purple" id="bar-top"   style="width:100%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-lbl">Pass Rate</div>
+          <div class="stat-val" id="stat-pass">—</div>
+          <div class="stat-bar"><div class="stat-fill fill-green"  id="bar-pass"  style="width:0"></div></div>
+        </div>
+      </section>
+
+      <!-- Two-col: Form + Search -->
+      <div class="two-col">
+
+        <!-- Add / Edit Form -->
+        <section class="card" aria-labelledby="form-title-el">
+          <div class="card-header">
+            <h2 class="card-title" id="form-title-el">Add Student</h2>
+            <span class="badge" id="form-badge">NEW</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inp-name">Full Name</label>
+            <input id="inp-name" class="form-input" type="text" placeholder="e.g. Alice Johnson" autocomplete="off" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="inp-roll">Roll Number</label>
+              <input id="inp-roll" class="form-input" type="text" placeholder="e.g. CS101" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inp-marks">
+                Marks <span class="label-hint">(0–100)</span>
+              </label>
+              <input id="inp-marks" class="form-input" type="number" placeholder="88" min="0" max="100" />
+            </div>
+          </div>
+
+          <div class="form-acts">
+            <button class="btn btn-primary" id="btn-submit" type="button">
+              <span class="btn-spinner" id="submit-spinner"></span>
+              <span id="submit-icon">＋</span>
+              <span id="submit-label">Add Student</span>
+            </button>
+            <button class="btn btn-ghost" id="btn-cancel" type="button" style="display:none">Cancel</button>
+          </div>
+          <input type="hidden" id="edit-id" value="" />
+        </section>
+
+        <!-- Search & Filter -->
+        <section class="card" aria-labelledby="search-title-el">
+          <div class="card-header">
+            <h2 class="card-title" id="search-title-el">Search & Filter</h2>
+            <span class="badge teal">LIVE</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inp-search">Search by Name</label>
+            <div class="icon-wrap">
+              <span class="inp-icon">⌕</span>
+              <input id="inp-search" class="form-input with-icon" type="text" placeholder="Type a name…" autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inp-filter">Marks above</label>
+            <div class="icon-wrap">
+              <span class="inp-icon">◈</span>
+              <input id="inp-filter" class="form-input with-icon" type="number" placeholder="e.g. 75" min="0" max="100" />
+            </div>
+          </div>
+
+          <div class="chips" id="filter-chips"></div>
+          <button class="btn btn-outline full-w" id="btn-clear">Clear Filters</button>
+        </section>
+
+      </div><!-- /.two-col -->
+
+      <!-- Students Table -->
+      <section class="card" style="animation-delay:0.24s" aria-labelledby="table-title-el">
+        <div class="card-header">
+          <h2 class="card-title" id="table-title-el">
+            Students <span class="result-count" id="result-count"></span>
+          </h2>
+          <button class="btn btn-ghost btn-sm" id="btn-refresh" type="button">↺ Refresh</button>
+        </div>
+
+        <!-- Skeleton loader -->
+        <div class="skeleton-wrap" id="skeleton">
+          <div class="skel-row"></div>
+          <div class="skel-row"></div>
+          <div class="skel-row"></div>
+          <div class="skel-row"></div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-scroll" id="table-wrap" style="display:none">
+          <table class="student-table" role="grid">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Roll No</th>
+                <th>Marks</th>
+                <th>Grade</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="empty-state" style="display:none" role="status">
+          <span class="empty-icon">◎</span>
+          <p class="empty-title">No students found</p>
+          <p class="empty-sub">Adjust your search, or add a new student using the form above.</p>
+        </div>
+      </section>
+
+    </main>
+  </div><!-- /.app -->
+
+  <!-- Delete confirmation modal -->
+  <div class="modal-backdrop" id="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-title-el">
+    <div class="modal">
+      <div class="modal-icon" aria-hidden="true">⚠</div>
+      <h3 class="modal-title" id="modal-title-el">Delete Student?</h3>
+      <p class="modal-body" id="modal-msg">This action cannot be undone.</p>
+      <div class="modal-acts">
+        <button class="btn btn-ghost"   id="modal-cancel"  type="button">Cancel</button>
+        <button class="btn btn-danger"  id="modal-confirm" type="button">
+          <span class="btn-spinner" id="del-spinner"></span>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

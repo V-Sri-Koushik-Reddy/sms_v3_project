@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scholar — Sign In / Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & base ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0b0d15;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    /* ── Background grid ─────────────────────────────────── */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 52px 52px;
+    }
+
+    /* ── Ambient orbs ────────────────────────────────────── */
+    .orb {
+      position: fixed; border-radius: 50%; filter: blur(90px);
+      pointer-events: none; z-index: 0;
+      animation: orb-drift 14s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 480px; height: 480px; background: radial-gradient(circle, rgba(245,158,11,0.12), transparent 70%); top: -120px; right: 30px; }
+    .orb-2 { width: 360px; height: 360px; background: radial-gradient(circle, rgba(45,212,191,0.08), transparent 70%); bottom: -60px; left: 80px; animation-delay: -7s; }
+    @keyframes orb-drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(20px, -20px) scale(1.06); }
+    }
+
+    /* ── Card ────────────────────────────────────────────── */
+    .card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 440px;
+      background: #161a2c;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 44px 40px 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      animation: card-rise 0.5s cubic-bezier(0.4,0,0.2,1) both;
+    }
+    .card::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(145deg, rgba(255,255,255,0.04), transparent 60%);
+      border-radius: inherit;
+    }
+    @keyframes card-rise {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── Brand ───────────────────────────────────────────── */
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 32px;
+    }
+    .brand-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      display: grid; place-items: center;
+      font-size: 1.1rem; color: #0b0d15;
+      box-shadow: 0 0 24px rgba(245,158,11,0.3);
+      flex-shrink: 0;
+    }
+    .brand-name { font-family: 'DM Serif Display', serif; font-size: 1.5rem; }
+    .brand-sub  { font-size: 0.78rem; color: #94a3b8; margin-top: 1px; }
+
+    /* ── Tab toggle ──────────────────────────────────────── */
+    .tabs {
+      display: grid; grid-template-columns: 1fr 1fr;
+      background: #10131f;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .tab-btn {
+      padding: 9px; border: none; background: transparent;
+      color: #94a3b8; font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem; font-weight: 500;
+      border-radius: 7px; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0b0d15;
+      box-shadow: 0 4px 16px rgba(245,158,11,0.25);
+    }
+
+    /* ── Form heading ────────────────────────────────────── */
+    .form-heading { font-family: 'DM Serif Display', serif; font-size: 1.15rem; margin-bottom: 4px; }
+    .form-sub     { font-size: 0.8rem; color: #94a3b8; margin-bottom: 22px; }
+
+    /* ── Form panels — only one visible at a time ────────── */
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+
+    /* ── Fields ──────────────────────────────────────────── */
+    .field { margin-bottom: 15px; }
+    .field label {
+      display: block; font-size: 0.78rem; font-weight: 500;
+      color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.02em;
+    }
+    .field input {
+      width: 100%; padding: 11px 14px;
+      background: #181d30;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      color: #f1f5f9; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      outline: none; transition: all 0.2s ease;
+    }
+    .field input::placeholder { color: #475569; }
+    .field input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+      background: #1e2440;
+    }
+
+    /* ── Password wrapper ────────────────────────────────── */
+    .pw-wrap { position: relative; }
+    .pw-eye {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: #475569; cursor: pointer;
+      font-size: 1rem; padding: 4px; line-height: 1;
+      transition: color 0.2s;
+    }
+    .pw-eye:hover { color: #f59e0b; }
+
+    /* ── Submit button ───────────────────────────────────── */
+    .btn-submit {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border: none; border-radius: 8px;
+      color: #0b0d15; font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+      box-shadow: 0 4px 20px rgba(245,158,11,0.25);
+      transition: all 0.2s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(245,158,11,0.35);
+      filter: brightness(1.06);
+    }
+    .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    /* Spinner inside button */
+    .spinner {
+      width: 15px; height: 15px; border-radius: 50%;
+      border: 2px solid rgba(11,13,21,0.3); border-top-color: #0b0d15;
+      animation: spin 0.7s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Alert boxes ─────────────────────────────────────── */
+    .alert {
+      padding: 11px 14px; border-radius: 8px;
+      font-size: 0.83rem; margin-top: 14px;
+      display: none; line-height: 1.5;
+    }
+    .alert.show { display: block; }
+    .alert.error {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #fca5a5;
+      animation: shake 0.35s ease;
+    }
+    .alert.success {
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86efac;
+    }
+    .alert.warning {
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.3);
+      color: #fcd34d;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-5px); }
+      75%      { transform: translateX(5px); }
+    }
+
+    /* ── Server status indicator ─────────────────────────── */
+    .server-status {
+      font-size: 0.72rem; text-align: center;
+      margin-top: 14px; color: #475569;
+    }
+    .server-status.ok  { color: #22c55e; }
+    .server-status.err { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="orb orb-1" aria-hidden="true"></div>
+  <div class="orb orb-2" aria-hidden="true"></div>
+
+  <div class="card" role="main">
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">✦</div>
+      <div>
+        <div class="brand-name">Scholar</div>
+        <div class="brand-sub">Student Management System</div>
+      </div>
+    </div>
+
+    <!-- Tab toggle -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" id="tab-login"    role="tab" aria-selected="true">Sign In</button>
+      <button class="tab-btn"        id="tab-register" role="tab" aria-selected="false">Register</button>
+    </div>
+
+    <!-- ── LOGIN FORM ──────────────────────────────────── -->
+    <div class="form-panel active" id="panel-login" role="tabpanel">
+      <h2 class="form-heading">Welcome back</h2>
+      <p class="form-sub">Sign in to access your dashboard</p>
+
+      <div class="field">
+        <label for="login-email">Email address</label>
+        <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+
+      <div class="field">
+        <label for="login-pw">Password</label>
+        <div class="pw-wrap">
+          <input id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password" />
+          <button class="pw-eye" type="button" data-target="login-pw" aria-label="Toggle password">👁</button>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btn-login">
+        <span class="spinner" id="spinner-login"></span>
+        <span id="lbl-login">Sign In</span>
+      </button>
+
+      <div class="alert" id="alert-login"></div>
+      <div class="server-status" id="server-status"></div>
+    </div>
+
+    <!-- ── REGISTER FORM ───────────────────────────────── -->
+    <div class="form-panel" id="panel-register" role="tabpanel">
+      <h2 class="form-heading">Create account</h2>
+      <p class="form-sub">Register to get started</p>
+
+      <div class="field">
+        <label for="reg-name">Full name</label>
+        <input id="reg-name" type="text" placeholder="Alice Johnson" autocomplete="name" />
+      </div>
+
+      <div class="field">
+        <label for="reg-email">Email address</label>
+        <input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+
+      <div class="field">
+        <label for="reg-pw">Password <span style="color:#475569;font-weight:400">(min 6 chars)</span></label>
+        <div class="pw-wrap">
+          <input id="reg-pw" type="password" placeholder="••••••••" autocomplete="new-password" />
+          <button class="pw-eye" type="button" data-target="reg-pw" aria-label="Toggle password">👁</button>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btn-register">
+        <span class="spinner" id="spinner-reg"></span>
+        <span id="lbl-register">Create Account</span>
+      </button>
+
+      <div class="alert" id="alert-register"></div>
+    </div>
+
+  </div><!-- /.card -->
+
+  <script src="auth.js"></script>
+  <script>
+    "use strict";
+
+    // ── Redirect to dashboard if already logged in ────────
+    redirectIfLoggedIn();
+
+    // ── DOM refs ──────────────────────────────────────────
+    const tabLogin     = document.getElementById("tab-login");
+    const tabRegister  = document.getElementById("tab-register");
+    const panelLogin   = document.getElementById("panel-login");
+    const panelRegister= document.getElementById("panel-register");
+
+    const btnLogin     = document.getElementById("btn-login");
+    const spinnerLogin = document.getElementById("spinner-login");
+    const lblLogin     = document.getElementById("lbl-login");
+    const alertLogin   = document.getElementById("alert-login");
+
+    const btnRegister  = document.getElementById("btn-register");
+    const spinnerReg   = document.getElementById("spinner-reg");
+    const lblRegister  = document.getElementById("lbl-register");
+    const alertRegister= document.getElementById("alert-register");
+
+    const serverStatus = document.getElementById("server-status");
+
+    // ── Tab switching ─────────────────────────────────────
+    function showLogin() {
+      tabLogin.classList.add("active");
+      tabRegister.classList.remove("active");
+      panelLogin.classList.add("active");
+      panelRegister.classList.remove("active");
+      tabLogin.setAttribute("aria-selected", "true");
+      tabRegister.setAttribute("aria-selected", "false");
+      clearAlert(alertLogin);
+    }
+
+    function showRegister() {
+      tabRegister.classList.add("active");
+      tabLogin.classList.remove("active");
+      panelRegister.classList.add("active");
+      panelLogin.classList.remove("active");
+      tabRegister.setAttribute("aria-selected", "true");
+      tabLogin.setAttribute("aria-selected", "false");
+      clearAlert(alertRegister);
+    }
+
+    tabLogin.addEventListener("click",    showLogin);
+    tabRegister.addEventListener("click", showRegister);
+
+    // ── Alert helpers ─────────────────────────────────────
+    function showAlert(el, msg, type = "error") {
+      el.textContent = msg;
+      el.className = `alert show ${type}`;
+      // Re-trigger shake animation on repeated errors
+      if (type === "error") {
+        el.style.animation = "none";
+        el.offsetHeight;
+        el.style.animation = "";
+      }
+    }
+    function clearAlert(el) {
+      el.className = "alert";
+      el.textContent = "";
+    }
+
+    // ── Loading state ─────────────────────────────────────
+    function setLoading(btn, spinner, lbl, text, loading) {
+      btn.disabled        = loading;
+      spinner.style.display = loading ? "block" : "none";
+      lbl.textContent     = loading ? "Please wait…" : text;
+    }
+
+    // ── Password toggle ───────────────────────────────────
+    document.querySelectorAll(".pw-eye").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const inp  = document.getElementById(btn.dataset.target);
+        const show = inp.type === "password";
+        inp.type   = show ? "text" : "password";
+        btn.textContent = show ? "🙈" : "👁";
+      });
+    });
+
+    // ── LOGIN ─────────────────────────────────────────────
+    async function handleLogin() {
+      clearAlert(alertLogin);
+      const email    = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-pw").value;
+
+      if (!email)    { showAlert(alertLogin, "Please enter your email.");    return; }
+      if (!password) { showAlert(alertLogin, "Please enter your password."); return; }
+
+      setLoading(btnLogin, spinnerLogin, lblLogin, "Sign In", true);
+
+      try {
+        await apiLogin(email, password);
+        // Success — redirect to dashboard
+        window.location.href = "index.html";
+      } catch (err) {
+        showAlert(alertLogin, diagnoseFetchError(err));
+      } finally {
+        setLoading(btnLogin, spinnerLogin, lblLogin, "Sign In", false);
+      }
+    }
+
+    // ── REGISTER ──────────────────────────────────────────
+    async function handleRegister() {
+      clearAlert(alertRegister);
+      const name     = document.getElementById("reg-name").value.trim();
+      const email    = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-pw").value;
+
+      if (!name)     { showAlert(alertRegister, "Please enter your full name.");      return; }
+      if (!email)    { showAlert(alertRegister, "Please enter your email.");          return; }
+      if (!password) { showAlert(alertRegister, "Please enter a password.");          return; }
+      if (password.length < 6) { showAlert(alertRegister, "Password must be at least 6 characters."); return; }
+
+      setLoading(btnRegister, spinnerReg, lblRegister, "Create Account", true);
+
+      try {
+        await apiRegister(name, email, password);
+
+        // ── Show success message, then auto-switch to login ──
+        showAlert(alertRegister, "✅  Registered successfully. Please log in.", "success");
+
+        // Pre-fill the login email for convenience
+        document.getElementById("login-email").value = email;
+
+        // Auto-switch to login after 1.8 s
+        setTimeout(() => {
+          showLogin();
+          showAlert(alertLogin, "Account created! Enter your password to sign in.", "warning");
+        }, 1800);
+
+      } catch (err) {
+        showAlert(alertRegister, diagnoseFetchError(err));
+      } finally {
+        setLoading(btnRegister, spinnerReg, lblRegister, "Create Account", false);
+      }
+    }
+
+    // ── Diagnose network errors with helpful message ──────
+    function diagnoseFetchError(err) {
+      if (err instanceof TypeError && err.message.toLowerCase().includes("fetch")) {
+        return "Cannot reach the server. Make sure the backend is running on port 5004.";
+      }
+      return err.message || "Something went wrong. Please try again.";
+    }
+
+    // ── Button click handlers ─────────────────────────────
+    btnLogin.addEventListener("click",    handleLogin);
+    btnRegister.addEventListener("click", handleRegister);
+
+    // ── Enter key submits the active form ─────────────────
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      if (panelLogin.classList.contains("active"))    handleLogin();
+      if (panelRegister.classList.contains("active")) handleRegister();
+    });
+
+    // ── Server health check on load ───────────────────────
+    (async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/`, { method: "GET" });
+        if (res.ok) {
+          serverStatus.textContent = "✓ Server connected on port 5004";
+          serverStatus.className   = "server-status ok";
+        }
+      } catch {
+        serverStatus.textContent = "⚠ Server not reachable — start the backend first";
+        serverStatus.className   = "server-status err";
+        showAlert(
+          alertLogin,
+          "Backend is not running. Run:  cd backend && npm install && npm start",
+          "error"
+        );
+      }
+    })();
+  </script>
+</body>
+</html>
